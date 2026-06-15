@@ -24,10 +24,10 @@ const TransactionLogs = () => {
     try {
       let data;
       if (selectedUser) {
-        // ✅ Filtrer par utilisateur sélectionné
+        //  Filtrer par utilisateur sélectionné
         data = await transactionLogService.getUserLogs(selectedUser, currentPage);
       } else {
-        // ✅ Tous les utilisateurs
+        //  Tous les utilisateurs
         data = await transactionLogService.getAllLogs(currentPage);
       }
       setLogs(data.logs || []);
@@ -100,13 +100,13 @@ const TransactionLogs = () => {
 
       {/* Statistiques par utilisateur */}
       <div className="stats-section">
-        <h3>📊 Statistiques par utilisateur</h3>
+        <h3>Statistiques par utilisateur</h3>
         <div className="stats-grid">
           <div
             className={`stat-card ${selectedUser === '' ? 'active' : ''}`}
             onClick={() => handleUserFilter('')}
           >
-            <div className="stat-username">📊 Tous</div>
+            <div className="stat-username">Tous</div>
             <div className="stat-count">{totalTransactions} transactions</div>
           </div>
           {stats.map(stat => (
