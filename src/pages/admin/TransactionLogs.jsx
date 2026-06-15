@@ -7,57 +7,57 @@ const TransactionLogs = () => {
   const [stats, setStats] = useState([]);
   const [selectedUser, setSelectedUser] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState('all'); // all, success, failed
+  const [filter, setFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0);
 
+  // Charger les statistiques
   useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const data = await transactionLogService.getUserStatistics();
+        setStats(data);
+      } catch (error) {
+        console.error('Erreur stats:', error);
+      }
+    };
     fetchStats();
   }, []);
 
+  // Charger les logs quand l'utilisateur ou la page change
   useEffect(() => {
+    const fetchLogs = async () => {
+      setIsLoading(true);
+      try {
+        let data;
+        if (selectedUser) {
+          data = await transactionLogService.getUserLogs(selectedUser, currentPage);
+        } else {
+          data = await transactionLogService.getAllLogs(currentPage);
+        }
+        setLogs(data.logs || []);
+        setTotalPages(data.totalPages || 0);
+        setTotalElements(data.totalElements || 0);
+      } catch (error) {
+        console.error('Erreur chargement logs:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
     fetchLogs();
   }, [selectedUser, currentPage]);
 
-  const fetchLogs = async () => {
-    setIsLoading(true);
-    try {
-      let data;
-      if (selectedUser) {
-        //  Filtrer par utilisateur sélectionné
-        data = await transactionLogService.getUserLogs(selectedUser, currentPage);
-      } else {
-        //  Tous les utilisateurs
-        data = await transactionLogService.getAllLogs(currentPage);
-      }
-      setLogs(data.logs || []);
-      setTotalPages(data.totalPages || 0);
-    } catch (error) {
-      console.error('Erreur lors du chargement des logs:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const data = await transactionLogService.getUserStatistics();
-      setStats(data);
-    } catch (error) {
-      console.error('Erreur lors du chargement des statistiques:', error);
-    }
-  };
-
   const handleUserFilter = (username) => {
     setSelectedUser(username);
-    setCurrentPage(0); // Reset à la première page
+    setCurrentPage(0);
   };
 
   const getStatusBadge = (status) => {
     switch(status) {
-      case 'SUCCESS': return <span className="badge badge-success">✓ Succès</span>;
-      case 'FAILED': return <span className="badge badge-danger">✗ Échec</span>;
-      default: return <span className="badge badge-warning">⏳ En cours</span>;
+      case 'SUCCESS': return <span className="badge-success">✓</span>;
+      case 'FAILED': return <span className="badge-danger">✗</span>;
+      default: return <span className="badge-warning">⏳</span>;
     }
   };
 
@@ -73,74 +73,74 @@ const TransactionLogs = () => {
     }
   };
 
-  // Filtrer les logs par statut
+  // Filtrer par statut
   const filteredLogs = logs.filter(log => {
     if (filter === 'success') return log.status === 'SUCCESS';
     if (filter === 'failed') return log.status === 'FAILED';
     return true;
   });
 
-  // Calculer le nombre total de transactions
   const totalTransactions = stats.reduce((sum, s) => sum + (s.transactionCount || 0), 0);
 
   if (isLoading) {
     return (
       <div className="loading-spinner">
-        Chargement des transactions...
+        <div className="spinner"></div>
+        <p>Chargement des transactions...</p>
       </div>
     );
   }
 
   return (
     <div className="transaction-logs-container">
+      {/* En-tête */}
       <div className="page-header">
         <h1>📋 Journal des Transactions</h1>
         <p>Historique complet de toutes les transactions par utilisateur</p>
       </div>
 
-      {/* Statistiques par utilisateur */}
-      <div className="stats-section">
-        <h3>Statistiques par utilisateur</h3>
-        <div className="stats-grid">
-          <div
-            className={`stat-card ${selectedUser === '' ? 'active' : ''}`}
-            onClick={() => handleUserFilter('')}
-          >
-            <div className="stat-username">Tous</div>
-            <div className="stat-count">{totalTransactions} transactions</div>
-          </div>
-          {stats.map(stat => (
-            <div
-              key={stat.username}
-              className={`stat-card ${selectedUser === stat.username ? 'active' : ''}`}
-              onClick={() => handleUserFilter(stat.username)}
-            >
-              <div className="stat-username">
-                {stat.username === 'admin' ? '👑 ' : '👤 '}{stat.username}
-              </div>
-              <div className="stat-count">{stat.transactionCount} transactions</div>
-            </div>
-          ))}
+      {/* Cartes statistiques compactes */}
+      <div className="stats-bar">
+        <div
+          className={`stat-badge ${selectedUser === '' ? 'active' : ''}`}
+          onClick={() => handleUserFilter('')}
+        >
+          <span className="stat-badge-icon">📊</span>
+          <span className="stat-badge-label">Tous</span>
+          <span className="stat-badge-count">{totalTransactions}</span>
         </div>
+        {stats.map(stat => (
+          <div
+            key={stat.username}
+            className={`stat-badge ${selectedUser === stat.username ? 'active' : ''}`}
+            onClick={() => handleUserFilter(stat.username)}
+          >
+            <span className="stat-badge-icon">
+              {stat.username === 'admin' ? '👑' : '👤'}
+            </span>
+            <span className="stat-badge-label">{stat.username}</span>
+            <span className="stat-badge-count">{stat.transactionCount}</span>
+          </div>
+        ))}
       </div>
 
-      {/* Barre d'actions avec bouton Rafraîchir bien visible */}
+      {/* Barre d'actions */}
       <div className="actions-bar">
-        <div className="filter-section">
-          <span className="filter-label">Filtrer par statut :</span>
-          <div className="filter-buttons">
-            <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
-              Tous
-            </button>
-            <button className={filter === 'success' ? 'active' : ''} onClick={() => setFilter('success')}>
-              ✓ Succès
-            </button>
-            <button className={filter === 'failed' ? 'active' : ''} onClick={() => setFilter('failed')}>
-              ✗ Échecs
-            </button>
-          </div>
+        <div className="filter-buttons">
+          <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
+            Tous
+          </button>
+          <button className={filter === 'success' ? 'active' : ''} onClick={() => setFilter('success')}>
+            ✓ Succès
+          </button>
+          <button className={filter === 'failed' ? 'active' : ''} onClick={() => setFilter('failed')}>
+            ✗ Échecs
+          </button>
         </div>
-        <button onClick={fetchLogs} className="refresh-btn">
+        <button onClick={() => {
+          setSelectedUser('');
+          setCurrentPage(0);
+        }} className="refresh-btn">
           🔄 Rafraîchir
         </button>
       </div>
@@ -152,20 +152,18 @@ const TransactionLogs = () => {
             <tr>
               <th>Date & Heure</th>
               <th>Utilisateur</th>
-              <th>Rôle</th>
               <th>Type</th>
               <th>Montant</th>
               <th>Frais</th>
               <th>Source</th>
               <th>Cible</th>
               <th>Statut</th>
-              <th>IP</th>
             </tr>
           </thead>
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan="10" className="no-data">
+                <td colSpan="8" className="no-data">
                   Aucune transaction trouvée
                 </td>
               </tr>
@@ -177,9 +175,9 @@ const TransactionLogs = () => {
                   </td>
                   <td className="user-cell">
                     <strong>{log.username}</strong>
-                  </td>
-                  <td>
-                    {log.userRole?.includes('ADMIN') ? '👑 Administrateur' : '👤 Utilisateur'}
+                    <span className="user-role-badge">
+                      {log.userRole?.includes('ADMIN') ? 'Admin' : 'User'}
+                    </span>
                   </td>
                   <td>
                     <span className="type-badge">
@@ -195,12 +193,6 @@ const TransactionLogs = () => {
                   <td>{log.sourcePhone || log.sourceAccount || '-'}</td>
                   <td>{log.targetPhone || log.targetAccount || '-'}</td>
                   <td>{getStatusBadge(log.status)}</td>
-                  <td className="ip-cell">
-                    {log.ipAddress}
-                    <small className="user-agent-preview" title={log.userAgent}>
-                      {log.userAgent?.substring(0, 30)}...
-                    </small>
-                  </td>
                 </tr>
               ))
             )}
@@ -214,24 +206,29 @@ const TransactionLogs = () => {
           <button
             disabled={currentPage === 0}
             onClick={() => setCurrentPage(p => p - 1)}
+            className="page-btn"
           >
             ← Précédent
           </button>
-          <span>Page {currentPage + 1} / {totalPages}</span>
+          <span className="page-info">
+            Page {currentPage + 1} / {totalPages}
+          </span>
           <button
             disabled={currentPage + 1 >= totalPages}
             onClick={() => setCurrentPage(p => p + 1)}
+            className="page-btn"
           >
             Suivant →
           </button>
         </div>
       )}
 
+      {/* Footer */}
       <div className="table-footer">
         {selectedUser ? (
-          <p>{filteredLogs.length} transaction(s) pour l'utilisateur <strong>{selectedUser}</strong></p>
+          <p>{filteredLogs.length} transaction(s) pour <strong>{selectedUser}</strong> sur {totalElements} au total</p>
         ) : (
-          <p>{filteredLogs.length} transaction(s) affichée(s)</p>
+          <p>{filteredLogs.length} transaction(s) affichée(s) sur {totalElements}</p>
         )}
       </div>
     </div>
