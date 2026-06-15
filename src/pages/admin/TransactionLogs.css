@@ -244,40 +244,22 @@
   font-size: 0.75rem;
 }
 
-/* Pagination */
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
+/* ✅ Pagination wrapper */
+.pagination-wrapper {
   margin-top: 1.5rem;
   padding: 0.5rem;
-}
-
-.page-btn {
-  padding: 0.4rem 1rem;
-  border: 1px solid #dee2e6;
   background: white;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  transition: all 0.2s;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.page-btn:hover:not(:disabled) {
-  background: #28a745;
-  color: white;
-  border-color: #28a745;
-}
-
-.page-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.page-info {
+.pagination-info {
+  text-align: center;
   font-size: 0.8rem;
   color: #6c757d;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
 }
 
 /* Footer */
@@ -343,5 +325,9 @@
   .user-role-badge,
   .type-badge {
     font-size: 0.6rem;
+  }
+
+  .pagination-info {
+    font-size: 0.7rem;
   }
 }

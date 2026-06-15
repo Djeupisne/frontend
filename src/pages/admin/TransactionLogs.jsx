@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import transactionLogService from '../../services/transactionLogService';
+import Pagination from '../../components/Pagination';  // ✅ Importer la pagination existante
 import './TransactionLogs.css';
 
 const TransactionLogs = () => {
@@ -8,9 +9,12 @@ const TransactionLogs = () => {
   const [selectedUser, setSelectedUser] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(0);
+
+  // ✅ Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0);
 
   // Charger les statistiques
   useEffect(() => {
@@ -25,20 +29,26 @@ const TransactionLogs = () => {
     fetchStats();
   }, []);
 
-  // Charger les logs quand l'utilisateur ou la page change
+  // Reset à la page 1 quand l'utilisateur change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedUser, filter]);
+
+  // Charger les logs
   useEffect(() => {
     const fetchLogs = async () => {
       setIsLoading(true);
       try {
         let data;
+        const page = currentPage - 1; // L'API utilise 0-based pagination
         if (selectedUser) {
-          data = await transactionLogService.getUserLogs(selectedUser, currentPage);
+          data = await transactionLogService.getUserLogs(selectedUser, page, itemsPerPage);
         } else {
-          data = await transactionLogService.getAllLogs(currentPage);
+          data = await transactionLogService.getAllLogs(page, itemsPerPage);
         }
         setLogs(data.logs || []);
+        setTotalItems(data.totalElements || 0);
         setTotalPages(data.totalPages || 0);
-        setTotalElements(data.totalElements || 0);
       } catch (error) {
         console.error('Erreur chargement logs:', error);
       } finally {
@@ -46,11 +56,10 @@ const TransactionLogs = () => {
       }
     };
     fetchLogs();
-  }, [selectedUser, currentPage]);
+  }, [selectedUser, currentPage, itemsPerPage, filter]);
 
   const handleUserFilter = (username) => {
     setSelectedUser(username);
-    setCurrentPage(0);
   };
 
   const getStatusBadge = (status) => {
@@ -99,7 +108,7 @@ const TransactionLogs = () => {
         <p>Historique complet de toutes les transactions par utilisateur</p>
       </div>
 
-      {/* Cartes statistiques compactes */}
+      {/* Statistiques compactes */}
       <div className="stats-bar">
         <div
           className={`stat-badge ${selectedUser === '' ? 'active' : ''}`}
@@ -139,7 +148,7 @@ const TransactionLogs = () => {
         </div>
         <button onClick={() => {
           setSelectedUser('');
-          setCurrentPage(0);
+          setCurrentPage(1);
         }} className="refresh-btn">
           🔄 Rafraîchir
         </button>
@@ -200,35 +209,34 @@ const TransactionLogs = () => {
         </table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            disabled={currentPage === 0}
-            onClick={() => setCurrentPage(p => p - 1)}
-            className="page-btn"
-          >
-            ← Précédent
-          </button>
-          <span className="page-info">
-            Page {currentPage + 1} / {totalPages}
-          </span>
-          <button
-            disabled={currentPage + 1 >= totalPages}
-            onClick={() => setCurrentPage(p => p + 1)}
-            className="page-btn"
-          >
-            Suivant →
-          </button>
+      {/* ✅ Pagination - comme dans ton image */}
+      {totalItems > 0 && (
+        <div className="pagination-wrapper">
+          <div className="pagination-info">
+            Affichage de {(currentPage - 1) * itemsPerPage + 1} à{' '}
+            {Math.min(currentPage * itemsPerPage, totalItems)} sur {totalItems} éléments
+          </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            itemsPerPage={itemsPerPage}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+            onItemsPerPageChange={(newItemsPerPage) => {
+              setItemsPerPage(newItemsPerPage);
+              setCurrentPage(1);
+            }}
+            itemsPerPageOptions={[5, 10, 25, 50, 100]}
+          />
         </div>
       )}
 
-      {/* Footer */}
       <div className="table-footer">
         {selectedUser ? (
-          <p>{filteredLogs.length} transaction(s) pour <strong>{selectedUser}</strong> sur {totalElements} au total</p>
+          <p>{filteredLogs.length} transaction(s) pour <strong>{selectedUser}</strong></p>
         ) : (
-          <p>{filteredLogs.length} transaction(s) affichée(s) sur {totalElements}</p>
+          <p>{filteredLogs.length} transaction(s) affichée(s)</p>
         )}
       </div>
     </div>
