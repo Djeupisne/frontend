@@ -7,27 +7,33 @@ const TransactionLogs = () => {
   const [stats, setStats] = useState([]);
   const [selectedUser, setSelectedUser] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [filter, setFilter] = useState('all'); // all, success, failed
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
   useEffect(() => {
-    fetchData();
     fetchStats();
-  }, [currentPage]);
+  }, []);
 
-  const fetchData = async () => {
+  useEffect(() => {
+    fetchLogs();
+  }, [selectedUser, currentPage]);
+
+  const fetchLogs = async () => {
     setIsLoading(true);
     try {
       let data;
       if (selectedUser) {
+        // ✅ Filtrer par utilisateur sélectionné
         data = await transactionLogService.getUserLogs(selectedUser, currentPage);
       } else {
+        // ✅ Tous les utilisateurs
         data = await transactionLogService.getAllLogs(currentPage);
       }
       setLogs(data.logs || []);
       setTotalPages(data.totalPages || 0);
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur lors du chargement des logs:', error);
     } finally {
       setIsLoading(false);
     }
@@ -38,13 +44,13 @@ const TransactionLogs = () => {
       const data = await transactionLogService.getUserStatistics();
       setStats(data);
     } catch (error) {
-      console.error('Erreur stats:', error);
+      console.error('Erreur lors du chargement des statistiques:', error);
     }
   };
 
   const handleUserFilter = (username) => {
     setSelectedUser(username);
-    setCurrentPage(0);
+    setCurrentPage(0); // Reset à la première page
   };
 
   const getStatusBadge = (status) => {
@@ -55,7 +61,35 @@ const TransactionLogs = () => {
     }
   };
 
-  if (isLoading) return <div className="loading-spinner">Chargement...</div>;
+  const getTransactionTypeLabel = (type) => {
+    switch(type) {
+      case 'VIREMENT_INTERNE': return 'Virement Interne';
+      case 'DEBIT_MOBILE_MONEY': return 'Transfert Mobile Money';
+      case 'CREDIT_MANUEL': return 'Crédit Manuel';
+      case 'DEBIT_MANUEL': return 'Débit Manuel';
+      case 'CREDIT': return 'Crédit';
+      case 'DEBIT': return 'Débit';
+      default: return type || 'N/A';
+    }
+  };
+
+  // Filtrer les logs par statut
+  const filteredLogs = logs.filter(log => {
+    if (filter === 'success') return log.status === 'SUCCESS';
+    if (filter === 'failed') return log.status === 'FAILED';
+    return true;
+  });
+
+  // Calculer le nombre total de transactions
+  const totalTransactions = stats.reduce((sum, s) => sum + (s.transactionCount || 0), 0);
+
+  if (isLoading) {
+    return (
+      <div className="loading-spinner">
+        Chargement des transactions...
+      </div>
+    );
+  }
 
   return (
     <div className="transaction-logs-container">
@@ -68,28 +102,45 @@ const TransactionLogs = () => {
       <div className="stats-section">
         <h3>📊 Statistiques par utilisateur</h3>
         <div className="stats-grid">
+          <div
+            className={`stat-card ${selectedUser === '' ? 'active' : ''}`}
+            onClick={() => handleUserFilter('')}
+          >
+            <div className="stat-username">📊 Tous</div>
+            <div className="stat-count">{totalTransactions} transactions</div>
+          </div>
           {stats.map(stat => (
             <div
               key={stat.username}
               className={`stat-card ${selectedUser === stat.username ? 'active' : ''}`}
               onClick={() => handleUserFilter(stat.username)}
             >
-              <div className="stat-username">👤 {stat.username}</div>
+              <div className="stat-username">
+                {stat.username === 'admin' ? '👑 ' : '👤 '}{stat.username}
+              </div>
               <div className="stat-count">{stat.transactionCount} transactions</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Filtres */}
-      <div className="filter-bar">
-        <button
-          className={!selectedUser ? 'active' : ''}
-          onClick={() => handleUserFilter('')}
-        >
-          Tous les utilisateurs
-        </button>
-        <button onClick={fetchData} className="refresh-btn">
+      {/* Barre d'actions avec bouton Rafraîchir bien visible */}
+      <div className="actions-bar">
+        <div className="filter-section">
+          <span className="filter-label">Filtrer par statut :</span>
+          <div className="filter-buttons">
+            <button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
+              Tous
+            </button>
+            <button className={filter === 'success' ? 'active' : ''} onClick={() => setFilter('success')}>
+              ✓ Succès
+            </button>
+            <button className={filter === 'failed' ? 'active' : ''} onClick={() => setFilter('failed')}>
+              ✗ Échecs
+            </button>
+          </div>
+        </div>
+        <button onClick={fetchLogs} className="refresh-btn">
           🔄 Rafraîchir
         </button>
       </div>
@@ -99,7 +150,7 @@ const TransactionLogs = () => {
         <table className="logs-table">
           <thead>
             <tr>
-              <th>Date</th>
+              <th>Date & Heure</th>
               <th>Utilisateur</th>
               <th>Rôle</th>
               <th>Type</th>
@@ -112,12 +163,14 @@ const TransactionLogs = () => {
             </tr>
           </thead>
           <tbody>
-            {logs.length === 0 ? (
+            {filteredLogs.length === 0 ? (
               <tr>
-                <td colSpan="10" className="no-data">Aucune transaction trouvée</td>
+                <td colSpan="10" className="no-data">
+                  Aucune transaction trouvée
+                </td>
               </tr>
             ) : (
-              logs.map(log => (
+              filteredLogs.map(log => (
                 <tr key={log.id} className={log.status === 'FAILED' ? 'failed-row' : ''}>
                   <td className="date-cell">
                     {new Date(log.createdAt).toLocaleString('fr-FR')}
@@ -125,9 +178,13 @@ const TransactionLogs = () => {
                   <td className="user-cell">
                     <strong>{log.username}</strong>
                   </td>
-                  <td>{log.userRole?.includes('ADMIN') ? '👑 Admin' : '👤 User'}</td>
                   <td>
-                    <span className="type-badge">{log.transactionType}</span>
+                    {log.userRole?.includes('ADMIN') ? '👑 Administrateur' : '👤 Utilisateur'}
+                  </td>
+                  <td>
+                    <span className="type-badge">
+                      {getTransactionTypeLabel(log.transactionType)}
+                    </span>
                   </td>
                   <td className="amount-cell">
                     {log.amount?.toLocaleString('fr-FR')} FCFA
@@ -141,7 +198,7 @@ const TransactionLogs = () => {
                   <td className="ip-cell">
                     {log.ipAddress}
                     <small className="user-agent-preview" title={log.userAgent}>
-                      {log.userAgent?.substring(0, 20)}...
+                      {log.userAgent?.substring(0, 30)}...
                     </small>
                   </td>
                 </tr>
@@ -169,6 +226,14 @@ const TransactionLogs = () => {
           </button>
         </div>
       )}
+
+      <div className="table-footer">
+        {selectedUser ? (
+          <p>{filteredLogs.length} transaction(s) pour l'utilisateur <strong>{selectedUser}</strong></p>
+        ) : (
+          <p>{filteredLogs.length} transaction(s) affichée(s)</p>
+        )}
+      </div>
     </div>
   );
 };
