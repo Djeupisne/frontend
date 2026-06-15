@@ -40,8 +40,9 @@
   margin-top: 1rem;
 }
 
+/* ✅ Cartes statistiques en VERT et BLANC */
 .stat-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
   color: white;
   padding: 1rem;
   border-radius: 12px;
@@ -68,12 +69,12 @@
 
 .stat-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 20px rgba(40,167,69,0.3);
 }
 
 .stat-card.active {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  background: linear-gradient(135deg, #20c997 0%, #198754 100%);
+  box-shadow: 0 4px 15px rgba(32,201,151,0.4);
   transform: scale(1.02);
 }
 
@@ -122,9 +123,9 @@
 }
 
 .filter-buttons button.active {
-  background: #667eea;
+  background: #28a745;
   color: white;
-  border-color: #667eea;
+  border-color: #28a745;
 }
 
 .refresh-btn {
@@ -134,7 +135,7 @@
 }
 
 .refresh-btn:hover {
-  background: #218838;
+  background: #1e7e34;
 }
 
 /* Tableau des logs */
@@ -272,9 +273,9 @@
 }
 
 .pagination button:hover:not(:disabled) {
-  background: #667eea;
+  background: #28a745;
   color: white;
-  border-color: #667eea;
+  border-color: #28a745;
 }
 
 .pagination button:disabled {
@@ -302,7 +303,7 @@
   width: 30px;
   height: 30px;
   border: 3px solid #e9ecef;
-  border-top-color: #667eea;
+  border-top-color: #28a745;
   border-radius: 50%;
   margin-right: 10px;
   animation: spin 0.8s linear infinite;
