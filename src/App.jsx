@@ -12,7 +12,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import authService from './services/authService';
 import './styles/index.css';
-import TransactionLogs from './components/Admin/TransactionLogs';
+import TransactionLogs from './pages/admin/TransactionLogs';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
