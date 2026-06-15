@@ -12,7 +12,7 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import authService from './services/authService';
 import './styles/index.css';
-
+import TransactionLogs from './components/Admin/TransactionLogs';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,6 +79,7 @@ function App() {
                     <Route path="/admin/users" element={authService.isAdmin() ? <UserManagement /> : <Navigate to="/" replace />} />
                     <Route path="/sms-logs" element={<SMSLogs />} />
                     <Route path="*" element={<Navigate to="/" replace />} />
+                    <Route path="/admin/logs" element={<TransactionLogs />} />
                   </Routes>
                 </main>
               </div>
