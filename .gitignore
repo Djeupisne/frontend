@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+.angular/cache/
+
+# Environment files
+.env
+.env.local
+*.env.*
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
