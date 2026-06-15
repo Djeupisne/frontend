@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:8080';
+// Remplacer l'URL codée en dur par une variable d'environnement
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 const authService = {
   login: async (username, password) => {
@@ -22,10 +23,8 @@ const authService = {
 
         return true;
       } else if (response.status === 401) {
-        // ✅ Lire le message texte du backend
         const errorMessage = await response.text();
 
-        // ✅ Vérifier si le message indique un compte désactivé
         if (errorMessage && (errorMessage.includes('désactivé') || errorMessage.includes('disabled'))) {
           throw new Error('Votre compte a été désactivé. Veuillez contacter l\'administrateur.');
         } else {
