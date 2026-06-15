@@ -1,6 +1,6 @@
 import authService from './authService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = import.meta.env.VITE_API_URL || 'https://sms-banking-pjcp.onrender.com';
 
 const transactionLogService = {
   getAllLogs: async (page = 0, size = 20) => {
