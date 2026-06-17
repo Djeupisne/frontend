@@ -458,7 +458,7 @@ const Dashboard = () => {
           successMessage = `Transfert Mobile Money effectué avec succès !\n Montant envoyé: ${amountValue.toLocaleString('fr-FR')} FCFA\n Frais (10%): ${fees.toLocaleString('fr-FR')} FCFA\n Total débité: ${totalAmount.toLocaleString('fr-FR')} FCFA\n Depuis: ${transactionForm.sourceAccount}\n Vers: ${transactionForm.targetPhone}`;
         }
         else if (transactionForm.transferType === 'mobile-from-phone') {
-          successMessage = `Transfert Mobile Money effectué avec succès !\n Montant envoyé: ${amountValue.toLocaleString('fr-FR')} FCFA\n Frais (10%): ${fees.toLocaleString('fr-FR')} FCFA\n Total débité: ${totalAmount.toLocaleString('fr-FR')} FCFA\n De: ${transactionForm.sourcePhone}\n Vers: ${transactionForm.targetPhone}`;
+          successMessage = `Transfert Mobile Money effectué avec succès !\n Montant envoyé: ${amountValue.toLocaleString('fr-FR')} FCFA\n Frais (10%): ${fees.toLocaleString('fr-FR')} FCFA\n Total débité: ${totalAmount.toLocaleString('fr-FR')} FCFA\n De: ${transactionForm.sourcePhone}\n Compte source: ${selectedAccount || clientAccounts[0]?.accountNumber || 'N/A'}\n Vers: ${transactionForm.targetPhone}`;
         }
         else if (transactionForm.transferType === 'credit') {
           successMessage = `Crédit Manuel effectué avec succès !\n➕ Montant crédité: ${amountValue.toLocaleString('fr-FR')} FCFA\n Compte: ${transactionForm.targetAccount}`;
