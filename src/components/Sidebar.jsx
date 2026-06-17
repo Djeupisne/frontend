@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import authService from '../services/authService'; // ✅ Ajouter cet import
+import authService from '../services/authService';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // ✅ État pour admin
+  const [isAdmin, setIsAdmin] = useState(false); // État pour admin
 
   useEffect(() => {
     const checkMobile = () => {
@@ -15,7 +15,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    // ✅ Vérifier si l'utilisateur est admin
+    //  Vérifier si l'utilisateur est admin
     setIsAdmin(authService.isAdmin());
 
     return () => window.removeEventListener('resize', checkMobile);
@@ -57,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             </Link>
           ))}
 
-          {/* ✅ NOUVEAU : Lien pour les admins - Journal des transactions */}
+          {/*  NOUVEAU : Lien pour les admins - Journal des transactions */}
           {isAdmin && (
             <Link
               to="/admin/logs"

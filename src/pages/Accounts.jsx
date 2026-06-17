@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import authService from '../services/authService';
 
-// Remplacer ligne 4
 const API_URL = import.meta.env.VITE_API_URL || 'https://sms-banking-pjcp.onrender.com';
 
 const Accounts = () => {

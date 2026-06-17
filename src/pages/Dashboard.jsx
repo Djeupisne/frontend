@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import authService from '../services/authService';
 import Pagination from '../components/Pagination';
 
-// Remplacer ligne 5
 const API_URL = import.meta.env.VITE_API_URL || 'https://sms-banking-pjcp.onrender.com';
 
 // Normalisation robuste des types
@@ -125,6 +124,12 @@ const Dashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(5);
 
+  // ✅ NOUVEAUX STATES pour la sélection de comptes
+  const [clientAccounts, setClientAccounts] = useState([]);
+  const [selectedAccount, setSelectedAccount] = useState('');
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(false);
+
   const [transactionForm, setTransactionForm] = useState({
     transferType: 'internal-from-phone',
     sourceAccount: '',
@@ -184,6 +189,43 @@ const Dashboard = () => {
     setCalculatedFees(fees);
     setTotalAmountWithFees(total);
     return { fees, total };
+  };
+
+  // ✅ NOUVELLE FONCTION pour récupérer les comptes d'un client
+  const fetchClientAccounts = async (phoneNumber) => {
+    if (!phoneNumber || phoneNumber.length < 8) {
+      setClientAccounts([]);
+      setShowAccountSelector(false);
+      setSelectedAccount('');
+      return;
+    }
+
+    setIsLoadingAccounts(true);
+    try {
+      const headers = authService.getAuthHeaders();
+      const response = await fetch(`${API_URL}/api/clients/${phoneNumber}/accounts`, { headers });
+      if (response.ok) {
+        const accounts = await response.json();
+        setClientAccounts(accounts);
+        setShowAccountSelector(accounts.length > 1);
+        if (accounts.length === 1) {
+          setSelectedAccount(accounts[0].accountNumber);
+        } else {
+          setSelectedAccount('');
+        }
+      } else {
+        setClientAccounts([]);
+        setShowAccountSelector(false);
+        setSelectedAccount('');
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des comptes:', error);
+      setClientAccounts([]);
+      setShowAccountSelector(false);
+      setSelectedAccount('');
+    } finally {
+      setIsLoadingAccounts(false);
+    }
   };
 
   const fetchDashboardData = async () => {
@@ -305,9 +347,15 @@ const Dashboard = () => {
           setTransactionMessage({ type: 'error', text: 'Veuillez saisir le compte bénéficiaire' });
           return;
         }
+        // ✅ Vérifier que le compte source est sélectionné si plusieurs comptes
+        if (showAccountSelector && !selectedAccount) {
+          setTransactionMessage({ type: 'error', text: 'Veuillez sélectionner un compte source' });
+          return;
+        }
         endpoint = `${API_URL}/api/transfers/internal/from-phone`;
         payload = {
           sourcePhone: transactionForm.sourcePhone,
+          sourceAccountNumber: selectedAccount || clientAccounts[0]?.accountNumber || '',
           targetAccountNumber: transactionForm.targetAccount,
           amount: amountValue,
           description: transactionForm.description || 'Virement interne depuis téléphone',
@@ -339,9 +387,15 @@ const Dashboard = () => {
           setTransactionMessage({ type: 'error', text: 'Veuillez saisir le numéro de téléphone du destinataire' });
           return;
         }
+        // ✅ Vérifier que le compte source est sélectionné si plusieurs comptes
+        if (showAccountSelector && !selectedAccount) {
+          setTransactionMessage({ type: 'error', text: 'Veuillez sélectionner un compte source' });
+          return;
+        }
         endpoint = `${API_URL}/api/transfers/mobile-money/from-phone`;
         payload = {
           sourcePhone: transactionForm.sourcePhone,
+          sourceAccountNumber: selectedAccount || clientAccounts[0]?.accountNumber || '',
           amount: amountValue,
           recipientPhone: transactionForm.targetPhone,
           description: transactionForm.description || 'Transfert Mobile Money',
@@ -398,7 +452,7 @@ const Dashboard = () => {
         let successMessage = '';
 
         if (transactionForm.transferType === 'internal-from-phone') {
-          successMessage = `Virement Interne effectué avec succès !\n Montant envoyé: ${amountValue.toLocaleString('fr-FR')} FCFA\n Frais (10%): ${fees.toLocaleString('fr-FR')} FCFA\n Total débité: ${totalAmount.toLocaleString('fr-FR')} FCFA\n De: ${transactionForm.sourcePhone}\n Vers: ${transactionForm.targetAccount}`;
+          successMessage = `Virement Interne effectué avec succès !\n Montant envoyé: ${amountValue.toLocaleString('fr-FR')} FCFA\n Frais (10%): ${fees.toLocaleString('fr-FR')} FCFA\n Total débité: ${totalAmount.toLocaleString('fr-FR')} FCFA\n De: ${transactionForm.sourcePhone}\n Compte source: ${selectedAccount || clientAccounts[0]?.accountNumber || 'N/A'}\n Vers: ${transactionForm.targetAccount}`;
         }
         else if (transactionForm.transferType === 'mobile-from-account') {
           successMessage = `Transfert Mobile Money effectué avec succès !\n Montant envoyé: ${amountValue.toLocaleString('fr-FR')} FCFA\n Frais (10%): ${fees.toLocaleString('fr-FR')} FCFA\n Total débité: ${totalAmount.toLocaleString('fr-FR')} FCFA\n Depuis: ${transactionForm.sourceAccount}\n Vers: ${transactionForm.targetPhone}`;
@@ -425,6 +479,9 @@ const Dashboard = () => {
         });
         setCalculatedFees(0);
         setTotalAmountWithFees(0);
+        setSelectedAccount('');
+        setClientAccounts([]);
+        setShowAccountSelector(false);
         setTimeout(() => {
           setShowTransactionModal(false);
           fetchDashboardData();
@@ -675,6 +732,9 @@ const Dashboard = () => {
           setTransactionMessage({ type: '', text: '' });
           setCalculatedFees(0);
           setTotalAmountWithFees(0);
+          setClientAccounts([]);
+          setShowAccountSelector(false);
+          setSelectedAccount('');
         }}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
@@ -686,6 +746,9 @@ const Dashboard = () => {
                   setTransactionMessage({ type: '', text: '' });
                   setCalculatedFees(0);
                   setTotalAmountWithFees(0);
+                  setClientAccounts([]);
+                  setShowAccountSelector(false);
+                  setSelectedAccount('');
                 }}
               >
                 ×
@@ -716,6 +779,9 @@ const Dashboard = () => {
                     setTransactionMessage({ type: '', text: '' });
                     setCalculatedFees(0);
                     setTotalAmountWithFees(0);
+                    setClientAccounts([]);
+                    setShowAccountSelector(false);
+                    setSelectedAccount('');
                   }}
                   required
                 >
@@ -739,18 +805,50 @@ const Dashboard = () => {
               </div>
 
               {(transactionForm.transferType === 'internal-from-phone' || transactionForm.transferType === 'mobile-from-phone') && (
-                <div className="form-group">
-                  <label htmlFor="sourcePhone">Téléphone source (Orabank) *</label>
-                  <input
-                    type="tel"
-                    id="sourcePhone"
-                    value={transactionForm.sourcePhone}
-                    onChange={(e) => setTransactionForm({...transactionForm, sourcePhone: e.target.value})}
-                    placeholder="Ex: +22890000000"
-                    required
-                  />
-                  <small className="form-hint">Votre numéro de téléphone lié à votre compte Orabank</small>
-                </div>
+                <>
+                  <div className="form-group">
+                    <label htmlFor="sourcePhone">Téléphone source (Orabank) *</label>
+                    <input
+                      type="tel"
+                      id="sourcePhone"
+                      value={transactionForm.sourcePhone}
+                      onChange={(e) => {
+                        setTransactionForm({...transactionForm, sourcePhone: e.target.value});
+                        fetchClientAccounts(e.target.value);
+                      }}
+                      placeholder="Ex: +22890000000"
+                      required
+                    />
+                    <small className="form-hint">Votre numéro de téléphone lié à votre compte Orabank</small>
+                  </div>
+
+                  {/* ✅ Sélecteur de comptes */}
+                  {showAccountSelector && (
+                    <div className="form-group">
+                      <label htmlFor="accountSelect">Compte source *</label>
+                      <select
+                        id="accountSelect"
+                        value={selectedAccount}
+                        onChange={(e) => setSelectedAccount(e.target.value)}
+                        required
+                        className="account-select"
+                        disabled={isLoadingAccounts}
+                      >
+                        <option value="">-- Choisissez un compte --</option>
+                        {clientAccounts.map(account => (
+                          <option key={account.id} value={account.accountNumber}>
+                            {account.accountNumber} - {account.accountType || 'Compte'}
+                            (Solde: {account.balance?.toLocaleString('fr-FR')} FCFA)
+                          </option>
+                        ))}
+                      </select>
+                      <small className="form-hint">
+                        Vous avez {clientAccounts.length} compte(s) lié(s) à ce numéro
+                        {isLoadingAccounts && ' ⏳ Chargement...'}
+                      </small>
+                    </div>
+                  )}
+                </>
               )}
 
               {transactionForm.transferType === 'mobile-from-account' && (
@@ -881,6 +979,9 @@ const Dashboard = () => {
                     setTransactionMessage({ type: '', text: '' });
                     setCalculatedFees(0);
                     setTotalAmountWithFees(0);
+                    setClientAccounts([]);
+                    setShowAccountSelector(false);
+                    setSelectedAccount('');
                   }}
                 >
                   Annuler

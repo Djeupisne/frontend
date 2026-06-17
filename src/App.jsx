@@ -36,7 +36,7 @@ function App() {
       }
       return false;
     } catch (error) {
-      // ✅ Propager l'erreur pour qu'elle soit capturée dans Login.jsx
+      // Propager l'erreur pour qu'elle soit capturée dans Login.jsx
       throw error;
     }
   };

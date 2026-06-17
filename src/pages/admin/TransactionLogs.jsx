@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import transactionLogService from '../../services/transactionLogService';
-import Pagination from '../../components/Pagination';  // ✅ Importer la pagination existante
+import Pagination from '../../components/Pagination';
 import './TransactionLogs.css';
 
 const TransactionLogs = () => {
@@ -10,7 +10,7 @@ const TransactionLogs = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
-  // ✅ Pagination state
+  //  Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
@@ -209,7 +209,7 @@ const TransactionLogs = () => {
         </table>
       </div>
 
-      {/* ✅ Pagination - comme dans ton image */}
+      {/*  Pagination */}
       {totalItems > 0 && (
         <div className="pagination-wrapper">
           <div className="pagination-info">

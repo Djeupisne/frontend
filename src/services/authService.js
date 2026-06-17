@@ -1,6 +1,6 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
-// 🔑 Gestionnaire de sessions multiples
+//  Gestionnaire de sessions multiples
 class SessionManager {
   // Générer un ID de session unique
   static generateSessionId() {
@@ -108,7 +108,7 @@ const authService = {
         const data = await response.json();
         const credentials = btoa(`${username}:${password}`);
         
-        // ✅ Créer une nouvelle session pour cet utilisateur
+        //  Créer une nouvelle session pour cet utilisateur
         SessionManager.createNewSession();
         
         // Stocker les informations de l'utilisateur dans sa session
@@ -122,7 +122,7 @@ const authService = {
         // Stocker aussi l'heure de connexion
         SessionManager.setItem('loginTime', new Date().toISOString());
 
-        console.log(`✅ Utilisateur ${username} connecté (session: ${SessionManager.getCurrentSessionId()})`);
+        console.log(` Utilisateur ${username} connecté (session: ${SessionManager.getCurrentSessionId()})`);
         return true;
         
       } else if (response.status === 401) {
@@ -154,7 +154,7 @@ const authService = {
       SessionManager.deleteSession(sessionId);
     });
     sessionStorage.clear();
-    console.log(`🗑️ Toutes les sessions ont été supprimées (${sessions.length} session(s))`);
+    console.log(` Toutes les sessions ont été supprimées (${sessions.length} session(s))`);
   },
 
   // Vérifier si l'utilisateur est authentifié dans la session courante
@@ -186,7 +186,7 @@ const authService = {
     return authService.getUserRole() === 'ADMIN';
   },
 
-  // 📊 Gestion multi-sessions : fonctions supplémentaires
+  //  Gestion multi-sessions : fonctions supplémentaires
   
   // Lister les sessions actives (pour debug/admin)
   getActiveSessions: () => {
