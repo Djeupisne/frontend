@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import authService from '../services/authService';
 
-
 const API_URL = import.meta.env.VITE_API_URL || 'https://sms-banking-pjcp.onrender.com';
 
 const SMSLogs = () => {
@@ -21,13 +20,10 @@ const SMSLogs = () => {
       const response = await fetch(`${API_URL}/api/sms/logs`, { headers });
       const data = await response.json();
 
-      // 🔥 Tri par date décroissante (les plus récentes en premier)
       const sortedData = Array.isArray(data) ? [...data].sort((a, b) => {
         const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
         const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-        // Décroissant : date la plus récente d'abord
         if (dateB !== dateA) return dateB - dateA;
-        // Si mêmes dates, trier par ID décroissant
         return (b.id || 0) - (a.id || 0);
       }) : [];
 
@@ -47,7 +43,9 @@ const SMSLogs = () => {
       log.sender?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.to?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.body?.toLowerCase().includes(searchTerm.toLowerCase());
+      log.body?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      log.conversationId?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -71,7 +69,7 @@ const SMSLogs = () => {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Rechercher par numéro ou message..."
+            placeholder="Rechercher par numéro, message, référence..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -109,6 +107,8 @@ const SMSLogs = () => {
           <thead>
             <tr>
               <th>Date & Heure</th>
+              <th>Référence</th>
+              <th>Conversation</th>
               <th>Type</th>
               <th>Numéro</th>
               <th>Message</th>
@@ -120,23 +120,32 @@ const SMSLogs = () => {
               filteredLogs.map((log) => (
                 <tr key={log.id}>
                   <td>{new Date(log.timestamp).toLocaleString('fr-FR')}</td>
+                  <td className="reference-cell">
+                    <span className="reference-badge">{log.reference || '-'}</span>
+                  </td>
+                  <td className="conversation-cell">
+                    <span className="conversation-badge">{log.conversationId || '-'}</span>
+                  </td>
                   <td>
                     <span className={`type-badge ${log.direction?.toLowerCase() || ''}`}>
-                      {log.direction === 'OUTGOING' ? 'Envoyé' : log.direction === 'INCOMING' ? 'Reçu' : log.direction || 'N/A'}
+                      {log.direction === 'OUTGOING' ? '📤 Envoyé' : log.direction === 'INCOMING' ? '📥 Reçu' : log.direction || 'N/A'}
                     </span>
                   </td>
                   <td className="phone-number">{log.phoneNumber || log.to || log.sender || 'N/A'}</td>
                   <td className="message-cell">{log.message || log.body || 'N/A'}</td>
                   <td>
                     <span className={`status-badge ${log.status?.toLowerCase() || ''}`}>
-                      {log.status === 'SENT' ? 'Envoyé' : log.status === 'RECEIVED' ? 'Reçu' : log.status === 'FAILED' ? 'Échec' : log.status || 'N/A'}
+                      {log.status === 'SENT' ? '✅ Envoyé' :
+                       log.status === 'RECEIVED' ? '📥 Reçu' :
+                       log.status === 'FAILED' ? '❌ Échec' :
+                       log.processedSuccessfully ? '✅ Succès' : '❌ Échec'}
                     </span>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="no-data">Aucun log SMS trouvé</td>
+                <td colSpan="7" className="no-data">Aucun log SMS trouvé</td>
               </tr>
             )}
           </tbody>
