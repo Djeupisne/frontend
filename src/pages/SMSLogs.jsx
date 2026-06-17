@@ -36,7 +36,9 @@ const SMSLogs = () => {
   };
 
   const filteredLogs = logs.filter((log) => {
-    const matchesFilter = filter === 'all' || log.direction?.toLowerCase() === filter.toLowerCase() || log.type?.toLowerCase() === filter.toLowerCase();
+    const matchesFilter = filter === 'all' ||
+      log.direction?.toLowerCase() === filter.toLowerCase() ||
+      log.type?.toLowerCase() === filter.toLowerCase();
     const matchesSearch =
       searchTerm === '' ||
       log.phoneNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -106,9 +108,10 @@ const SMSLogs = () => {
           <thead>
             <tr>
               <th>Date & Heure</th>
-              <th>Reference</th>
+              <th>Référence</th>        {/* ← GARDE UNIQUEMENT RÉFÉRENCE */}
+              {/* LIGNE SUPPRIMÉE : <th>Conversation</th> */}
               <th>Type</th>
-              <th>Numero</th>
+              <th>Numéro</th>
               <th>Message</th>
               <th>Statut</th>
             </tr>
@@ -121,26 +124,29 @@ const SMSLogs = () => {
                   <td className="reference-cell">
                     <span className="reference-badge">{log.reference || '-'}</span>
                   </td>
+                  {/* LIGNE SUPPRIMÉE : <td>{log.conversation || '-'}</td> */}
                   <td>
                     <span className={`type-badge ${log.direction?.toLowerCase() || ''}`}>
-                      {log.direction === 'OUTGOING' ? 'Envoye' : log.direction === 'INCOMING' ? 'Recu' : log.direction || 'N/A'}
+                      {log.direction === 'OUTGOING' ? 'Envoyé' :
+                       log.direction === 'INCOMING' ? 'Reçu' :
+                       log.direction || 'N/A'}
                     </span>
                   </td>
                   <td className="phone-number">{log.phoneNumber || log.to || log.sender || 'N/A'}</td>
                   <td className="message-cell">{log.message || log.body || 'N/A'}</td>
                   <td>
                     <span className={`status-badge ${log.status?.toLowerCase() || ''}`}>
-                      {log.status === 'SENT' ? 'Envoye' :
-                       log.status === 'RECEIVED' ? 'Recu' :
-                       log.status === 'FAILED' ? 'Echec' :
-                       log.processedSuccessfully ? 'Succes' : 'Echec'}
+                      {log.status === 'SENT' ? 'Envoyé' :
+                       log.status === 'RECEIVED' ? 'Reçu' :
+                       log.status === 'FAILED' ? 'Échec' :
+                       log.processedSuccessfully ? 'Succès' : 'Échec'}
                     </span>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="no-data">Aucun log SMS trouve</td>
+                <td colSpan="6" className="no-data">Aucun log SMS trouvé</td>
               </tr>
             )}
           </tbody>
@@ -148,7 +154,7 @@ const SMSLogs = () => {
       </div>
 
       <div className="table-footer">
-        <p>{filteredLogs.length} log(s) affiche(s) sur {logs.length} au total</p>
+        <p>{filteredLogs.length} log(s) affiché(s) sur {logs.length} au total</p>
       </div>
     </div>
   );
