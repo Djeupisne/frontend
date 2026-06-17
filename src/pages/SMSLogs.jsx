@@ -44,8 +44,7 @@ const SMSLogs = () => {
       log.to?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.message?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       log.body?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.reference?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      log.conversationId?.toLowerCase().includes(searchTerm.toLowerCase());
+      log.reference?.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -62,14 +61,14 @@ const SMSLogs = () => {
     <div className="sms-logs-page">
       <div className="page-header">
         <h1>Historique des SMS</h1>
-        <p>Tous les messages envoyés et reçus</p>
+        <p>Tous les messages envoyes et recus</p>
       </div>
 
       <div className="filters-section">
         <div className="search-box">
           <input
             type="text"
-            placeholder="Rechercher par numéro, message, référence..."
+            placeholder="Rechercher par numero, message, reference..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -85,19 +84,19 @@ const SMSLogs = () => {
             className={filter === 'outgoing' || filter === 'sent' ? 'active' : ''}
             onClick={() => setFilter('outgoing')}
           >
-            Envoyés
+            Envoyes
           </button>
           <button
             className={filter === 'incoming' || filter === 'received' ? 'active' : ''}
             onClick={() => setFilter('incoming')}
           >
-            Reçus
+            Recus
           </button>
           <button
             className={filter === 'failed' ? 'active' : ''}
             onClick={() => setFilter('failed')}
           >
-            Échoués
+            Echoues
           </button>
         </div>
       </div>
@@ -107,10 +106,9 @@ const SMSLogs = () => {
           <thead>
             <tr>
               <th>Date & Heure</th>
-              <th>Référence</th>
-              <th>Conversation</th>
+              <th>Reference</th>
               <th>Type</th>
-              <th>Numéro</th>
+              <th>Numero</th>
               <th>Message</th>
               <th>Statut</th>
             </tr>
@@ -123,29 +121,26 @@ const SMSLogs = () => {
                   <td className="reference-cell">
                     <span className="reference-badge">{log.reference || '-'}</span>
                   </td>
-                  <td className="conversation-cell">
-                    <span className="conversation-badge">{log.conversationId || '-'}</span>
-                  </td>
                   <td>
                     <span className={`type-badge ${log.direction?.toLowerCase() || ''}`}>
-                      {log.direction === 'OUTGOING' ? '📤 Envoyé' : log.direction === 'INCOMING' ? '📥 Reçu' : log.direction || 'N/A'}
+                      {log.direction === 'OUTGOING' ? 'Envoye' : log.direction === 'INCOMING' ? 'Recu' : log.direction || 'N/A'}
                     </span>
                   </td>
                   <td className="phone-number">{log.phoneNumber || log.to || log.sender || 'N/A'}</td>
                   <td className="message-cell">{log.message || log.body || 'N/A'}</td>
                   <td>
                     <span className={`status-badge ${log.status?.toLowerCase() || ''}`}>
-                      {log.status === 'SENT' ? '✅ Envoyé' :
-                       log.status === 'RECEIVED' ? '📥 Reçu' :
-                       log.status === 'FAILED' ? '❌ Échec' :
-                       log.processedSuccessfully ? '✅ Succès' : '❌ Échec'}
+                      {log.status === 'SENT' ? 'Envoye' :
+                       log.status === 'RECEIVED' ? 'Recu' :
+                       log.status === 'FAILED' ? 'Echec' :
+                       log.processedSuccessfully ? 'Succes' : 'Echec'}
                     </span>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="no-data">Aucun log SMS trouvé</td>
+                <td colSpan="6" className="no-data">Aucun log SMS trouve</td>
               </tr>
             )}
           </tbody>
@@ -153,7 +148,7 @@ const SMSLogs = () => {
       </div>
 
       <div className="table-footer">
-        <p>{filteredLogs.length} log(s) affiché(s) sur {logs.length} au total</p>
+        <p>{filteredLogs.length} log(s) affiche(s) sur {logs.length} au total</p>
       </div>
     </div>
   );
