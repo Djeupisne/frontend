@@ -347,7 +347,6 @@ const Dashboard = () => {
           setTransactionMessage({ type: 'error', text: 'Veuillez saisir le compte bénéficiaire' });
           return;
         }
-        // ✅ Vérifier que le compte source est sélectionné si plusieurs comptes
         if (showAccountSelector && !selectedAccount) {
           setTransactionMessage({ type: 'error', text: 'Veuillez sélectionner un compte source' });
           return;
@@ -387,7 +386,6 @@ const Dashboard = () => {
           setTransactionMessage({ type: 'error', text: 'Veuillez saisir le numéro de téléphone du destinataire' });
           return;
         }
-        // ✅ Vérifier que le compte source est sélectionné si plusieurs comptes
         if (showAccountSelector && !selectedAccount) {
           setTransactionMessage({ type: 'error', text: 'Veuillez sélectionner un compte source' });
           return;
@@ -417,9 +415,15 @@ const Dashboard = () => {
           setTransactionMessage({ type: 'error', text: 'Veuillez saisir le numéro de téléphone du client' });
           return;
         }
+        // ✅ Vérifier que le compte est sélectionné si plusieurs comptes
+        if (showAccountSelector && !selectedAccount) {
+          setTransactionMessage({ type: 'error', text: 'Veuillez sélectionner un compte à débiter' });
+          return;
+        }
         endpoint = `${API_URL}/api/admin/accounts/debit-from-phone`;
         payload = {
           phoneNumber: transactionForm.sourcePhone,
+          accountNumber: selectedAccount || clientAccounts[0]?.accountNumber || '',  // ← AJOUTÉ !
           amount: amountValue,
           description: transactionForm.description || 'Débit manuel',
         };
@@ -464,7 +468,7 @@ const Dashboard = () => {
           successMessage = `Crédit Manuel effectué avec succès !\n➕ Montant crédité: ${amountValue.toLocaleString('fr-FR')} FCFA\n Compte: ${transactionForm.targetAccount}`;
         }
         else if (transactionForm.transferType === 'debit') {
-          successMessage = `Débit Manuel effectué avec succès !\n➖ Montant débité: ${amountValue.toLocaleString('fr-FR')} FCFA\n Téléphone: ${transactionForm.sourcePhone}`;
+          successMessage = `Débit Manuel effectué avec succès !\n➖ Montant débité: ${amountValue.toLocaleString('fr-FR')} FCFA\n Téléphone: ${transactionForm.sourcePhone}\n Compte débité: ${selectedAccount || clientAccounts[0]?.accountNumber || 'N/A'}`;
         }
 
         setTransactionMessage({ type: 'success', text: successMessage });
@@ -866,19 +870,54 @@ const Dashboard = () => {
                 </div>
               )}
 
-              {transactionForm.transferType === 'debit' && (
-                <div className="form-group">
-                  <label htmlFor="sourcePhone"> Téléphone du client *</label>
-                  <input
-                    type="tel"
-                    id="sourcePhone"
-                    value={transactionForm.sourcePhone}
-                    onChange={(e) => setTransactionForm({...transactionForm, sourcePhone: e.target.value})}
-                    placeholder="Ex: +22890000000"
-                    required
-                  />
-                  <small className="form-hint">Numéro de téléphone du client lié à son compte Orabank</small>
-                </div>
+              {/* ============================================================
+                  SECTION DÉBIT MANUEL (Admin) - CORRIGÉE
+                  ============================================================ */}
+              {transactionForm.transferType === 'debit' && isAdmin && (
+                <>
+                  <div className="form-group">
+                    <label htmlFor="debitPhone">📱 Téléphone du client *</label>
+                    <input
+                      type="tel"
+                      id="debitPhone"
+                      value={transactionForm.sourcePhone}
+                      onChange={(e) => {
+                        setTransactionForm({...transactionForm, sourcePhone: e.target.value});
+                        fetchClientAccounts(e.target.value);
+                      }}
+                      placeholder="Ex: +22890000000"
+                      required
+                    />
+                    <small className="form-hint">Numéro de téléphone du client lié à son compte Orabank</small>
+                  </div>
+
+                  {/* ✅ Sélecteur de comptes pour le débit */}
+                  {showAccountSelector && (
+                    <div className="form-group">
+                      <label htmlFor="debitAccountSelect">🏦 Compte à débiter *</label>
+                      <select
+                        id="debitAccountSelect"
+                        value={selectedAccount}
+                        onChange={(e) => setSelectedAccount(e.target.value)}
+                        required
+                        className="account-select"
+                        disabled={isLoadingAccounts}
+                      >
+                        <option value="">-- Choisissez un compte --</option>
+                        {clientAccounts.map(account => (
+                          <option key={account.id} value={account.accountNumber}>
+                            {account.accountNumber} - {account.accountType || 'Compte'}
+                            (Solde: {account.balance?.toLocaleString('fr-FR')} FCFA)
+                          </option>
+                        ))}
+                      </select>
+                      <small className="form-hint">
+                        Vous avez {clientAccounts.length} compte(s) lié(s) à ce numéro
+                        {isLoadingAccounts && ' ⏳ Chargement...'}
+                      </small>
+                    </div>
+                  )}
+                </>
               )}
 
               {(transactionForm.transferType === 'internal-from-phone' || transactionForm.transferType === 'credit') && (
