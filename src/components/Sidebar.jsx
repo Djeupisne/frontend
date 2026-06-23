@@ -5,7 +5,7 @@ import authService from '../services/authService';
 const Sidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false); // État pour admin
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => {
@@ -15,17 +15,16 @@ const Sidebar = ({ isOpen, onClose }) => {
     checkMobile();
     window.addEventListener('resize', checkMobile);
 
-    //  Vérifier si l'utilisateur est admin
     setIsAdmin(authService.isAdmin());
 
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // ✅ Menu visible pour tous (sans "Comptes")
   const menuItems = [
     { path: '/', label: 'Tableau de bord', icon: '📊' },
     { path: '/transactions', label: 'Transactions', icon: '💳' },
     { path: '/clients', label: 'Clients', icon: '👥' },
-    { path: '/accounts', label: 'Comptes', icon: '🏦' },
     { path: '/sms-logs', label: 'Logs SMS', icon: '📜' },
   ];
 
@@ -57,7 +56,31 @@ const Sidebar = ({ isOpen, onClose }) => {
             </Link>
           ))}
 
-          {/*  NOUVEAU : Lien pour les admins - Journal des transactions */}
+          {/* ✅ "Comptes" visible uniquement pour les admins */}
+          {isAdmin && (
+            <Link
+              to="/accounts"
+              className={`nav-item ${location.pathname === '/accounts' ? 'active' : ''}`}
+              onClick={() => isMobile && onClose()}
+            >
+              <span className="nav-icon">🏦</span>
+              {isOpen && <span className="nav-label">Comptes</span>}
+            </Link>
+          )}
+
+          {/* ✅ "Gérer les utilisateurs" visible uniquement pour les admins */}
+          {isAdmin && (
+            <Link
+              to="/admin/users"
+              className={`nav-item ${location.pathname === '/admin/users' ? 'active' : ''}`}
+              onClick={() => isMobile && onClose()}
+            >
+              <span className="nav-icon">👥</span>
+              {isOpen && <span className="nav-label">Gérer les utilisateurs</span>}
+            </Link>
+          )}
+
+          {/* ✅ "Journal des transactions" visible uniquement pour les admins */}
           {isAdmin && (
             <Link
               to="/admin/logs"
