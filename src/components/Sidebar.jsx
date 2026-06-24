@@ -20,7 +20,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // ✅ Menu visible pour tous (sans "Comptes")
+  //  Menu visible pour tous (sans "Comptes")
   const menuItems = [
     { path: '/', label: 'Tableau de bord', icon: '📊' },
     { path: '/transactions', label: 'Transactions', icon: '💳' },
@@ -56,7 +56,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             </Link>
           ))}
 
-          {/* ✅ "Comptes" visible uniquement pour les admins */}
+          {/*  "Comptes" visible uniquement pour les admins */}
           {isAdmin && (
             <Link
               to="/accounts"
@@ -68,7 +68,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             </Link>
           )}
 
-          {/* ✅ "Gérer les utilisateurs" visible uniquement pour les admins */}
+          {/*  "Gérer les utilisateurs" visible uniquement pour les admins */}
           {isAdmin && (
             <Link
               to="/admin/users"
@@ -80,7 +80,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             </Link>
           )}
 
-          {/* ✅ "Journal des transactions" visible uniquement pour les admins */}
+          {/*  "Journal des transactions" visible uniquement pour les admins */}
           {isAdmin && (
             <Link
               to="/admin/logs"
